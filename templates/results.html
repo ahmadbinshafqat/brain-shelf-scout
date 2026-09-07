@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="results-header">
+  <div>
+    <h1>Scan #{{ scan.id }} results</h1>
+    <p>{{ scan.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
+  </div>
+  <a class="button secondary" href="{{ url_for('index') }}">Scan another shelf</a>
+</div>
+
+<section class="grid">
+  <div class="card">
+    <h2>Uploaded photo</h2>
+    <img class="scan-image" src="{{ scan.image_url }}" alt="Uploaded bookshelf scan">
+  </div>
+  <div class="card">
+    <h2>Issues</h2>
+    {% if issues %}
+      <ul class="issues">
+        {% for issue in issues %}
+          <li class="severity-{{ issue.severity }}"><strong>{{ issue.type.replace('_', ' ').title() }}</strong><br>{{ issue.description }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="ok">No duplicate or series-gap issues detected.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="card">
+  <h2>Detected books</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Flag</th><th>Title</th><th>Author</th><th>Confidence</th><th>Position</th><th>Shelf row</th></tr>
+      </thead>
+      <tbody>
+      {% for book in books %}
+        <tr>
+          <td>{% if book.title in duplicate_titles %}<span class="pill danger">duplicate</span>{% else %}<span class="pill">ok</span>{% endif %}</td>
+          <td>{{ book.title }}</td>
+          <td>{{ book.author }}</td>
+          <td>{{ '%.0f'|format(book.confidence * 100) }}%</td>
+          <td>x={{ book.x }}, y={{ book.y }}</td>
+          <td>{{ book.shelf_row }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6">No books detected.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

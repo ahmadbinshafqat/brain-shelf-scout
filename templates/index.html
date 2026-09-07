@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div>
+    <h1>Scan a shelf. Spot duplicates and series gaps.</h1>
+    <p>Upload a bookshelf photo and Shelf Scout will return detected titles, confidence scores, duplicate warnings, and missing-volume gap hints.</p>
+  </div>
+  <div class="card upload-card">
+    <form action="{{ url_for('create_scan') }}" method="post" enctype="multipart/form-data">
+      <label for="image">Bookshelf photo</label>
+      <input id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp" required>
+      <button type="submit">Analyze shelf</button>
+    </form>
+    <a class="demo-link" href="{{ url_for('demo_image') }}" target="_blank">Generate demo shelf image</a>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Recent scans</h2>
+  {% if recent_scans %}
+    <ul class="recent-list">
+      {% for scan in recent_scans %}
+        <li><a href="{{ url_for('results', scan_id=scan.id) }}">Scan #{{ scan.id }}</a> — {{ scan.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No scans yet. Upload the demo image to see the end-to-end flow.</p>
+  {% endif %}
+</section>
+{% endblock %}
