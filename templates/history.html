@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Scan History · Shelf Scout{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">Saved locally</p>
+    <h1>Scan history</h1>
+    <p class="lede">Reopen any previous bookshelf scan to review detected titles, duplicates, and missing-series flags without uploading the image again.</p>
+</section>
+
+{% if scans %}
+    <section class="history-grid" aria-label="Past scans">
+        {% for scan in scans %}
+            <article class="history-card card">
+                <a class="history-thumb" href="{{ url_for('scan_detail', scan_id=scan.id, from='history') }}" aria-label="Open scan {{ scan.original_filename }}">
+                    <img src="{{ url_for('static', filename=scan.image_path) }}" alt="Thumbnail for {{ scan.original_filename }}">
+                </a>
+                <div class="history-body">
+                    <div class="section-heading-row align-start">
+                        <div>
+                            <h2>{{ scan.original_filename }}</h2>
+                            <p class="muted">{{ scan.created_at.strftime('%B %d, %Y at %I:%M %p') if scan.created_at else 'Saved scan' }}</p>
+                        </div>
+                        <span class="pill {% if scan.has_issues %}pill-warning{% else %}pill-success{% endif %}">{{ scan.issue_count }} issues</span>
+                    </div>
+                    <div class="history-stats" aria-label="Scan summary">
+                        <span><strong>{{ scan.book_count }}</strong> books</span>
+                        <span><strong>{{ scan.issue_count }}</strong> flags</span>
+                    </div>
+                    <a class="button button-secondary full-width" href="{{ url_for('scan_detail', scan_id=scan.id, from='history') }}">Open results</a>
+                </div>
+            </article>
+        {% endfor %}
+    </section>
+{% else %}
+    <section class="card empty-history">
+        <h2>No scans yet</h2>
+        <p class="muted">Upload a bookshelf photo to create your first saved scan. It will appear here automatically.</p>
+        <a class="button" href="{{ url_for('index') }}">Start a scan</a>
+    </section>
+{% endif %}
+{% endblock %}

@@ -1,54 +1,72 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="results-header">
-  <div>
-    <h1>Scan #{{ scan.id }} results</h1>
-    <p>{{ scan.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
-  </div>
-  <a class="button secondary" href="{{ url_for('index') }}">Scan another shelf</a>
-</div>
-
-<section class="grid">
-  <div class="card">
-    <h2>Uploaded photo</h2>
-    <img class="scan-image" src="{{ scan.image_url }}" alt="Uploaded bookshelf scan">
-  </div>
-  <div class="card">
-    <h2>Issues</h2>
-    {% if issues %}
-      <ul class="issues">
-        {% for issue in issues %}
-          <li class="severity-{{ issue.severity }}"><strong>{{ issue.type.replace('_', ' ').title() }}</strong><br>{{ issue.description }}</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="ok">No duplicate or series-gap issues detected.</p>
-    {% endif %}
-  </div>
+<section class="results-header card">
+    <div>
+        <p class="eyebrow">{% if from_history %}Saved scan{% else %}Scan results{% endif %}</p>
+        <h1>{{ scan.original_filename }}</h1>
+        <p class="muted">Scanned {{ scan.created_at.strftime('%B %d, %Y at %I:%M %p') if scan.created_at else 'recently' }} · {{ books|length }} books detected · {{ issues|length }} issues flagged</p>
+    </div>
+    <div class="result-actions">
+        <a class="button button-secondary" href="{{ url_for('history') }}">Scan history</a>
+        <a class="button button-ghost" href="{{ url_for('index') }}">New scan</a>
+    </div>
 </section>
 
-<section class="card">
-  <h2>Detected books</h2>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Flag</th><th>Title</th><th>Author</th><th>Confidence</th><th>Position</th><th>Shelf row</th></tr>
-      </thead>
-      <tbody>
-      {% for book in books %}
-        <tr>
-          <td>{% if book.title in duplicate_titles %}<span class="pill danger">duplicate</span>{% else %}<span class="pill">ok</span>{% endif %}</td>
-          <td>{{ book.title }}</td>
-          <td>{{ book.author }}</td>
-          <td>{{ '%.0f'|format(book.confidence * 100) }}%</td>
-          <td>x={{ book.x }}, y={{ book.y }}</td>
-          <td>{{ book.shelf_row }}</td>
-        </tr>
-      {% else %}
-        <tr><td colspan="6">No books detected.</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<section class="results-layout">
+    <aside class="card image-panel">
+        <h2>Uploaded shelf</h2>
+        <img src="{{ url_for('static', filename=scan.image_path) }}" alt="Uploaded bookshelf image for {{ scan.original_filename }}">
+    </aside>
+
+    <div class="results-main">
+        <section class="card">
+            <div class="section-heading-row">
+                <h2>Detected books</h2>
+                <span class="pill">{{ books|length }} total</span>
+            </div>
+
+            {% if books %}
+                <div class="book-list">
+                    {% for book in books %}
+                        <article class="book-row">
+                            <div class="spine-swatch" style="background: {{ book.color_hex }}" aria-hidden="true"></div>
+                            <div class="book-info">
+                                <h3>{{ book.title }}</h3>
+                                <p>{{ book.author }}</p>
+                                <div class="book-meta">
+                                    <span>{{ book.series_label }}</span>
+                                    <span>Shelf row {{ book.shelf_row }}</span>
+                                    <span>Position {{ book.position }}</span>
+                                </div>
+                            </div>
+                            <strong class="confidence">{{ book.confidence_percent }}%</strong>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-state">No books were detected in this scan.</p>
+            {% endif %}
+        </section>
+
+        <section class="card">
+            <div class="section-heading-row">
+                <h2>Issues</h2>
+                <span class="pill {% if issues %}pill-warning{% else %}pill-success{% endif %}">{{ issues|length }} flagged</span>
+            </div>
+
+            {% if issues %}
+                <div class="issue-list">
+                    {% for issue in issues %}
+                        <article class="issue-card issue-{{ issue.severity }}">
+                            <div>
+                                <span class="issue-type">{{ issue.display_type }}</span>
+                                <p>{{ issue.message }}</p>
+                            </div>
+                            <span class="severity">{{ issue.severity }}</span>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-state">No duplicate or missing-volume issues were found.</p>
+            {% endif %}
+        </section>
+    </div>
 </section>
-{% endblock %}

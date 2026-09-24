@@ -1,30 +1,58 @@
 {% extends "base.html" %}
+
+{% block title %}New Scan · Shelf Scout{% endblock %}
+
 {% block content %}
-<section class="hero">
-  <div>
-    <h1>Scan a shelf. Spot duplicates and series gaps.</h1>
-    <p>Upload a bookshelf photo and Shelf Scout will return detected titles, confidence scores, duplicate warnings, and missing-volume gap hints.</p>
-  </div>
-  <div class="card upload-card">
-    <form action="{{ url_for('create_scan') }}" method="post" enctype="multipart/form-data">
-      <label for="image">Bookshelf photo</label>
-      <input id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp" required>
-      <button type="submit">Analyze shelf</button>
-    </form>
-    <a class="demo-link" href="{{ url_for('demo_image') }}" target="_blank">Generate demo shelf image</a>
-  </div>
+<section class="hero card">
+    <div>
+        <p class="eyebrow">Bookshelf photo analyzer</p>
+        <h1>Find duplicate books and missing series volumes from one shelf photo.</h1>
+        <p class="lede">Upload an image and Shelf Scout will detect spine-like regions, match them to the local demo catalog, save the scan, and flag useful shelf issues.</p>
+        <div class="hero-actions">
+            <a class="button button-secondary" href="{{ url_for('demo_image') }}">Generate demo shelf image</a>
+            <a class="button button-ghost" href="{{ url_for('history') }}">View scan history</a>
+        </div>
+    </div>
 </section>
 
-<section class="card">
-  <h2>Recent scans</h2>
-  {% if recent_scans %}
-    <ul class="recent-list">
-      {% for scan in recent_scans %}
-        <li><a href="{{ url_for('results', scan_id=scan.id) }}">Scan #{{ scan.id }}</a> — {{ scan.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No scans yet. Upload the demo image to see the end-to-end flow.</p>
-  {% endif %}
+<section class="card upload-card">
+    <h2>Start a new scan</h2>
+    <form method="post" enctype="multipart/form-data" class="upload-form">
+        <label for="shelf_image">Bookshelf image</label>
+        <input id="shelf_image" name="shelf_image" type="file" accept="image/png,image/jpeg,image/webp" required>
+        <button class="button" type="submit">Scan bookshelf</button>
+    </form>
+    <p class="muted">Supported formats: PNG, JPG, JPEG, WEBP. Scans are saved locally so you can reopen them later.</p>
+</section>
+
+<section class="split-grid">
+    <article class="card">
+        <h2>What Shelf Scout reports</h2>
+        <ul class="check-list">
+            <li>Detected book title and author</li>
+            <li>Confidence score and shelf position</li>
+            <li>Duplicate title flags</li>
+            <li>Missing volume gaps for known series</li>
+        </ul>
+    </article>
+
+    <article class="card">
+        <div class="section-heading-row">
+            <h2>Recent scans</h2>
+            <a href="{{ url_for('history') }}">All history</a>
+        </div>
+        {% if recent_scans %}
+            <ul class="compact-scan-list">
+                {% for scan in recent_scans %}
+                    <li>
+                        <a href="{{ url_for('scan_detail', scan_id=scan.id) }}">{{ scan.original_filename }}</a>
+                        <span>{{ scan.created_at.strftime('%b %-d, %Y %I:%M %p') if scan.created_at else 'Saved scan' }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="muted">No saved scans yet. Your first upload will appear here.</p>
+        {% endif %}
+    </article>
 </section>
 {% endblock %}
